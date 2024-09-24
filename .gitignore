@@ -5,8 +5,9 @@ __pycache__/modules.cpython-311.pyc
 __pycache__/utils.cpython-311.pyc
 model/
 runs/
-models/DDPM_conditional/ckpt.pt
+models/*
 models/DDPM_conditional/ema_ckpt.pt
+results/*
 models/DDPM_conditional/optim.pt
 results/DDPM_conditional/1_ema.jpg
 results/DDPM_conditional/1.jpg

@@ -67,16 +67,36 @@ def train(args):
     setup_logging(args.run_name)
     device = args.device
     dataloader = get_data(args)
-    model = UNet_conditional(num_classes=args.num_classes).to(device)
-    optimizer = optim.AdamW(model.parameters(), lr=args.lr)
-    mse = nn.MSELoss()
+
+
+    model_path = os.path.join("models", args.run_name, f"ckpt.pt")
+    ema_model_path = os.path.join("models", args.run_name, f"ema_ckpt.pt")
+    optimizer_path = os.path.join("models", args.run_name, f"optim.pt")
+    epoch_path = os.path.join("models", args.run_name, f"epoch_ckpt.pt")
+        
+    if args.cont == True:
+        model = UNet_conditional(num_classes=10).to(device)
+        optimizer = optim.AdamW(model.parameters(), lr=args.lr)
+        ema_model = UNet_conditional(num_classes=10).to(device)
+        
+        model.load_state_dict(torch.load(model_path))
+        ema_model.load_state_dict(torch.load(ema_model_path))
+        optimizer.load_state_dict(torch.load(optimizer_path))
+
+        last_epoch = torch.load(epoch_path)
+        logging.info(f"Continuing epoch {last_epoch}:")
+    else:
+        model = UNet_conditional(num_classes=args.num_classes).to(device)
+        optimizer = optim.AdamW(model.parameters(), lr=args.lr)
+        ema_model = copy.deepcopy(model).eval().requires_grad_(False)
+        last_epoch = 0
+    
+    mse = nn.MSELoss() 
     diffusion = Diffusion(img_size=args.image_size, device=device)
     logger = SummaryWriter(os.path.join("runs", args.run_name))
     l = len(dataloader)
     ema = EMA(0.995)
-    ema_model = copy.deepcopy(model).eval().requires_grad_(False)
-
-    for epoch in range(args.epochs):
+    for epoch in range(last_epoch, args.epochs):
         logging.info(f"Starting epoch {epoch}:")
         pbar = tqdm(dataloader)
         for i, (images, labels) in enumerate(pbar):
@@ -97,30 +117,34 @@ def train(args):
             pbar.set_postfix(MSE=loss.item())
             logger.add_scalar("MSE", loss.item(), global_step=epoch * l + i)
 
-        if epoch % 1 == 0:
+        if epoch % 10 == 0:
             labels = torch.arange(10).long().to(device)
             sampled_images = diffusion.sample(model, n=len(labels), labels=labels)
             ema_sampled_images = diffusion.sample(ema_model, n=len(labels), labels=labels)
             plot_images(sampled_images)
             save_images(sampled_images, os.path.join("results", args.run_name, f"{epoch}.jpg"))
             save_images(ema_sampled_images, os.path.join("results", args.run_name, f"{epoch}_ema.jpg"))
-            torch.save(model.state_dict(), os.path.join("models", args.run_name, f"ckpt.pt"))
-            torch.save(ema_model.state_dict(), os.path.join("models", args.run_name, f"ema_ckpt.pt"))
-            torch.save(optimizer.state_dict(), os.path.join("models", args.run_name, f"optim.pt"))
+
+            # Saving checkpoint
+            torch.save(model.state_dict(), model_path)
+            torch.save(ema_model.state_dict(), ema_model_path)
+            torch.save(optimizer.state_dict(), optimizer_path)
+            torch.save(epoch, epoch_path)
 
 
 def launch():
     import argparse
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
-    args.run_name = "DDPM_conditional"
+    args.run_name = "DDPM_conditional_64"
     args.epochs = 300
     args.batch_size = 14
     args.image_size = 64
     args.num_classes = 10
-    args.dataset_path = r"./cifar10-32/train"
+    args.dataset_path = r"./cifar10-64/train"
     args.device = "cuda"
     args.lr = 3e-4
+    args.cont = True 
     train(args)
 
 
