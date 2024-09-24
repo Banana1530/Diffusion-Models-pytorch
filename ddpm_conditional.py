@@ -97,7 +97,7 @@ def train(args):
             pbar.set_postfix(MSE=loss.item())
             logger.add_scalar("MSE", loss.item(), global_step=epoch * l + i)
 
-        if epoch % 10 == 0:
+        if epoch % 1 == 0:
             labels = torch.arange(10).long().to(device)
             sampled_images = diffusion.sample(model, n=len(labels), labels=labels)
             ema_sampled_images = diffusion.sample(ema_model, n=len(labels), labels=labels)
@@ -118,7 +118,7 @@ def launch():
     args.batch_size = 14
     args.image_size = 64
     args.num_classes = 10
-    args.dataset_path = r"C:\Users\dome\datasets\cifar10\cifar10-64\train"
+    args.dataset_path = r"./cifar10-32/train"
     args.device = "cuda"
     args.lr = 3e-4
     train(args)

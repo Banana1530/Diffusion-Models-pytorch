@@ -3,3 +3,20 @@ cifar10-64/*
 archive (1).zip
 __pycache__/modules.cpython-311.pyc
 __pycache__/utils.cpython-311.pyc
+model/
+runs/
+models/DDPM_conditional/ckpt.pt
+models/DDPM_conditional/ema_ckpt.pt
+models/DDPM_conditional/optim.pt
+results/DDPM_conditional/1_ema.jpg
+results/DDPM_conditional/1.jpg
+results/DDPM_conditional/catimg
+runs/DDPM_conditional/events.out.tfevents.1725992357.2402-gpu-node0049.779228.0
+__pycache__/modules.cpython-39.pyc
+__pycache__/utils.cpython-39.pyc
+results/DDPM_conditional/0_ema.jpg
+results/DDPM_conditional/0.jpg
+results/DDPM_conditional/10_ema.jpg
+results/DDPM_conditional/10.jpg
+results/DDPM_conditional/20_ema.jpg
+results/DDPM_conditional/20.jpg
